@@ -1,6 +1,10 @@
 <b><i>
 # ***Configuring the Haproxy Load Balancer and Apache Webserver on top of AWS using ansible***
 
+<p align="center">
+<img src="./pictures/0.png" />
+</p>
+
 >## ***Task Description:***
 1. Provision EC2 instances through ansible.
 2. Retrieve the IP Address of instances using the dynamic inventory concept.
