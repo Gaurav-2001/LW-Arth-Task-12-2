@@ -1,0 +1,86 @@
+- hosts: localhost
+  vars_files:
+          - "./vars/vars.yml"
+  tasks:
+          - name: 'Launching the EC2 instance using profile'
+            ec2:
+                    profile: '{{ profile }}'
+                    image: '{{ ami_id }}'
+                    count: '{{ count }}'
+                    assign_public_ip: '{{ public_ip_need }}'
+                    instance_type: '{{ instance_type }}'
+                    state: present
+                    wait: 'yes'
+                    vpc_subnet_id: '{{ subnet_id }}'
+                    group_id: '{{ security_group_id }}'
+                    region: '{{ region }}'
+                    key_name: '{{ key }}'
+                    instance_tags:
+                            env: "web"
+                            Name: "web-backend-server"
+
+          - name: "Refresh the inventory"
+            meta: refresh_inventory
+
+          - name: "Install haproxy"
+            package:
+                    name: "haproxy"
+                    state: present
+
+          - name: "Configure haproxy"
+            template:
+                    src: "./template/haproxy.cfg"
+                    dest: "/etc/haproxy/haproxy.cfg"
+            register: lb_conf
+
+          - name: "Restart Service"
+            service:
+                    name: "haproxy"
+                    state: restarted
+            when: lb_conf.changed == true
+
+          - name: "Start Services"
+            service:
+                    name: "haproxy"
+                    state: started
+
+- hosts: ec2
+  vars_files:
+          - "./vars/vars.yml"
+  tasks:
+          - name: "Install httpd"
+            package:
+                    name: "httpd"
+                    state: present
+
+          - name: "Install php"
+            package:
+                    name: "php"
+                    state: present
+
+          - name: "Configure the httpd"
+            template:
+                    src: "./template/gaurav.conf"
+                    dest: "/etc/httpd/conf.d/gaurav.conf"
+            register: web_conf
+
+          - name: "Create folder"
+            file:
+                    state: directory
+                    path: "{{ doc_root }}"
+
+          - name: "Restart Services"
+            service:
+                    name: "httpd"
+                    state: restarted
+            when: web_conf.changed == true
+
+          - name: "Start services"
+            service:
+                    name: "httpd"
+                    state: started
+
+          - name: "Copy the web pages"
+            copy:
+                    src: "./copy/index.php"
+                    dest: "{{ doc_root }}/index.php"

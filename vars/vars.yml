@@ -1,0 +1,12 @@
+doc_root: "/var/www/gaurav"
+web_port: 81
+lb_port: 8081
+profile: "gaurav"
+ami_id: "ami-04db49c0fb2215364"
+count: 2
+public_ip_need: yes
+instance_type: "t2.micro"
+subnet_id: "subnet-8ad2e8e2"
+security_group_id: "sg-2087c042"
+region: "ap-south-1"
+key: "NewAWS_CommonKey"
